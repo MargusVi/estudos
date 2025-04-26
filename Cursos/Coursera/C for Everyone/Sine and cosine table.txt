@@ -1,0 +1,19 @@
+/*
+Marcos, November 12, 2022
+*/
+
+#include <stdio.h>
+#include <math.h>
+
+int main()
+{
+	double x, i, sine, cosine;
+	for(i = 0; i <= 10; i++) //Loops while the conditions are met
+	{
+    		x = i / 10.0; //Gives us a number between 0 and 1
+    		sine = sin(x); //Calculates the sine
+    		cosine = cos(x); //Calculates the cosine
+    		printf("Sine(%.2lf) = %.2lf		Cosine(%.2lf = %.2lf)\n", x, sine, x, cosine); //Prints the answers
+	}
+	return 0; //Closes the program
+}

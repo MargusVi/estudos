@@ -1,0 +1,19 @@
+#include <stdio.h>
+#include <math.h>
+
+int main(){
+	double x;
+    
+	printf("Write a number between 0 and 1: "); //Asks the user to input a number
+	scanf("%lf", &x); //Reads and stores the users input
+	if(x > 0 && x < 1) //If the number is between 0 and 1
+	{
+		printf("Sin(%lf) = %lf\n", x, sin(x)); //Calculates the sin of the number and prints the result
+	}
+	else
+	{
+		printf("Please write a number between 0 and 1.\n");
+	}
+
+	return 0; //Closes the program
+}

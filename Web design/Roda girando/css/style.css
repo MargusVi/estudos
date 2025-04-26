@@ -1,0 +1,23 @@
+*{
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body{
+	height: 90vh;
+	margin: 4vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+img{
+	transition: transform 1s;
+	opacity:0.4;
+}
+
+img:hover{
+	transform: rotate(360deg);
+	opacity:1;
+}

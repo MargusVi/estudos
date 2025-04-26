@@ -1,0 +1,106 @@
+#include <GL/glut.h>
+
+int gira = 0;
+GLfloat tx = 0, ty = 0, angulo = 0, win = 1, d = 0.25;
+
+void Inicializa() {
+    tx = 0;
+    ty = 0;
+    angulo = 0;
+    gira = 0;
+    win = 1;
+}
+
+void DesenhaTriangulo() {
+    glBegin(GL_TRIANGLES);
+        glColor3f(1, 0, 0);
+        glVertex3f(tx - d, ty - d, 0); // Inf. Esquerdo
+        glColor3f(0, 1, 0);
+        glVertex3f(tx, ty + d, 0); // Superior
+        glColor3f(0, 0, 1);
+        glVertex3f(tx + d, ty - d, 0); // Inf. Direito
+    glEnd();
+}
+
+void Desenha() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glLoadIdentity();
+    
+    if (gira == 1) {
+        angulo += 0.1;
+        glRotatef(angulo, 0, 0, 1);
+    }
+    Implemente uma aplicação em que faça com que um triângulo policores se movimente sozinho pela janela sem ultrapassar as bordas da mesma, de forma similar a um descanso de tela.
+
+Use glutTimerFunc(33, Timer, 1);
+
+Timer() {muda X e Y}
+
+Desenha() {desenha com base em X e Y}
+    DesenhaTriangulo();
+    glutSwapBuffers();
+}
+
+void TeclasEspeciais(int key, int x, int y) {
+    switch (key) {
+        case GLUT_KEY_UP: ty += 0.1; break;
+        case GLUT_KEY_DOWN: ty -= 0.1; break;
+        case GLUT_KEY_LEFT: tx -= 0.1; break;
+        case GLUT_KEY_RIGHT: tx += 0.1; break;
+    }
+    glLoadIdentity();
+    glTranslatef(tx, ty, 0);
+    glutPostRedisplay();
+}
+
+void GerenciaMouse(int button, int state, int x, int y) {
+    switch(button) {
+        case GLUT_LEFT_BUTTON: 
+            if (state == GLUT_DOWN) win += 0.1; 
+            break;
+        case GLUT_RIGHT_BUTTON: 
+            if (state == GLUT_DOWN) win -= 0.1; 
+            break;
+    }
+    glLoadIdentity();
+    gluOrtho2D(-win, win, -win, win);
+    glutPostRedisplay();
+}
+
+void GerenciaTeclado(unsigned char key, int x, int y) {
+    switch (key) {
+        case 'A': d += 0.05; break;
+        case 'D': d -= 0.05; break;
+        case 'G': gira = 1; break;
+        case 'R': angulo += 15; break;
+        case 'O': Inicializa(); break;
+        case 'P': gira = 0; break;
+        case 27: exit(0); break; // ESC to exit
+    }
+    glutPostRedisplay();
+}
+
+void InicializaGL() {
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    gluOrtho2D(-win, win, -win, win);
+}
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(500, 500);
+    glutCreateWindow("Animacao com Triangulo");
+
+    InicializaGL();
+    Inicializa();
+
+    glutDisplayFunc(Desenha);
+    glutSpecialFunc(TeclasEspeciais);
+    glutMouseFunc(GerenciaMouse);
+    glutKeyboardFunc(GerenciaTeclado);
+    glutIdleFunc(Desenha);
+
+    glutMainLoop();
+    return 0;
+}
+
