@@ -1,9 +1,9 @@
-// filepath: c:\Users\user\Documents\Pessoal\Estudos\Cursos\Engenharia da Computação - UEMG\AEDS III\Atividade 01\fila_de_pilhas.cpp
 #include <iostream>
+
+#define CAPACIDADE_MAX 3
 
 using namespace std;
 
-// Node for stack elements
 class no_elemento_pilha {
 public:
     int valor;
@@ -15,12 +15,10 @@ public:
     }
 };
 
-// Stack class
 class pilha {
 private:
     no_elemento_pilha* topo;
     int qtd;
-    static const int MAX_CAPACIDADE = 3;
 
 public:
     pilha() {
@@ -29,7 +27,7 @@ public:
     }
 
     ~pilha() {
-        int val_removido; // Dummy for remover
+        int val_removido;
         while (!esta_vazia()) {
             remover(val_removido);
         }
@@ -61,7 +59,7 @@ public:
     }
 
     bool esta_cheia() const {
-        return qtd >= MAX_CAPACIDADE;
+        return qtd >= CAPACIDADE_MAX;
     }
 
     bool esta_vazia() const {
@@ -83,7 +81,6 @@ public:
     }
 };
 
-// Node for the queue of stacks
 class no_fila_de_pilhas {
 public:
     pilha p_interna; // Each node in the queue contains a stack object

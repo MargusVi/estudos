@@ -1,9 +1,9 @@
 #include <iostream>
 #include <cstdlib> // For NULL
 
-using namespace std;
+#define TAM_MAX_FILA 3
 
-const int TAM_MAX_FILA = 3;
+using namespace std;
 
 // --- Estrutura e Classe para os Elementos da Fila ---
 class no_elemento_fila {
