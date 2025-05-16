@@ -4,7 +4,6 @@
 #include <algorithm> // Para std::max
 #include <limits>    // Para std::numeric_limits
 #include <cstdlib>   // Para system("cls") ou system("clear")
-#include <functional> // Para std::function
 
 using namespace std;
 
@@ -89,24 +88,6 @@ private:
             delete no_atual;
         }
     }
-
-    // Imprime a subárvore direita, depois o nó atual, depois a subárvore esquerda
-    void imprimir_recursivo(no_arvore* no_atual, int espaco, int incremento_espaco) const {
-        if (no_atual == NULL) {
-            return;
-        }
-        espaco += incremento_espaco;
-
-        imprimir_recursivo(no_atual->direita, espaco, incremento_espaco);
-
-        cout << "\n";
-        for (int i = incremento_espaco; i < espaco; i++) {
-            cout << " ";
-        }
-        cout << no_atual->valor << "";
-
-        imprimir_recursivo(no_atual->esquerda, espaco, incremento_espaco);
-    }
     
     // Função auxiliar para verificar se a árvore está vazia
     bool esta_vazia_recursivo(no_arvore* no_atual) const {
@@ -114,9 +95,99 @@ private:
     }
     
     // Função auxiliar para calcular a altura da árvore
-    int altura_recursiva(no_arvore* node) const {
-        if (!node) return 0;
-        return 1 + max(altura_recursiva(node->esquerda), altura_recursiva(node->direita));
+    int altura_recursivo(no_arvore* no) const {
+        if (!no) return 0;
+        return 1 + max(altura_recursivo(no->esquerda), altura_recursivo(no->direita));
+    }
+
+    void disposicao_recursivo(no_arvore* no, vector<string>& malha, vector<int>& linha, int profundidade, int altura, int limite_esq, int limite_dir, vector<int>& espacamentos) {
+        if (!no) return; // Se o nó é nulo, não faz nada
+
+        int pos_x = (limite_esq + limite_dir) / 2; // Centro horizontal do nó entre os limites esquerdo e direito
+        int pos_y = linha[profundidade]; // Linha vertical definida para este nível de profundidade
+        string valor_str = to_string(no->valor); // Converte valor do nó em string e centraliza sobre pos_x
+        int inicio = pos_x - valor_str.size() / 2;
+
+        for (int i = 0; i < (int)valor_str.size(); ++i)
+            malha[pos_y][inicio + i] = valor_str[i];
+
+        // Ligações para filhos à esquerda
+        if (no->esquerda && profundidade < altura - 1) {
+            int limite_esq_novo = limite_esq;
+            int limite_dir_novo = pos_x - 1;
+            int pos_x_filho = (limite_esq_novo + limite_dir_novo) / 2;
+            int espacamento_vertical = espacamentos[profundidade];
+
+            // Desenha linha diagonal até o nó filho, seguindo a razão entre delta X e delta Y
+            for (int passo = 1; passo <= espacamento_vertical; ++passo) {
+                int pos_x_inter = pos_x - (pos_x - pos_x_filho) * passo / espacamento_vertical;
+                malha[pos_y + passo][pos_x_inter] = '/';
+            }
+
+            disposicao_recursivo(no->esquerda, malha, linha, profundidade + 1, altura, limite_esq_novo, limite_dir_novo, espacamentos); // Recursa para desenhar subárvore esquerda
+        }
+
+        // Ligações para filhos à direita
+        if (no->direita && profundidade < altura - 1) {
+            int limite_esq_novo = pos_x + 1;
+            int limite_dir_novo = limite_dir;
+            int pos_x_filho = (limite_esq_novo + limite_dir_novo) / 2;
+            int espacamento_vertical = espacamentos[profundidade];
+
+            for (int passo = 1; passo <= espacamento_vertical; ++passo) {
+                int pos_x_inter = pos_x + (pos_x_filho - pos_x) * passo / espacamento_vertical;
+                malha[pos_y + passo][pos_x_inter] = '\\';
+            }
+
+            disposicao_recursivo(no->direita, malha, linha, profundidade + 1, altura, limite_esq_novo, limite_dir_novo, espacamentos);
+        }
+    };
+
+    void coletar_valores_em_ordem_recursivo(no_arvore* no_atual, vector<int>& valores) {
+        if (no_atual != NULL) {
+            coletar_valores_em_ordem_recursivo(no_atual->esquerda, valores);
+            valores.push_back(no_atual->valor);
+            coletar_valores_em_ordem_recursivo(no_atual->direita, valores);
+        }
+    }
+
+    void criar_balanceada_recursivo(vector<int>& valores) {
+        if (valores.empty()) return;
+
+        int meio = valores.size() / 2;
+        inserir(valores[meio]);
+
+        vector<int> esquerda(valores.begin(), valores.begin() + meio);
+        vector<int> direita(valores.begin() + meio + 1, valores.end());
+
+        criar_balanceada_recursivo(esquerda);
+        criar_balanceada_recursivo(direita);
+    }
+
+    void impressao_em_ordem_recursivo(no_arvore* no_atual) {
+        if (no_atual != NULL) {
+            cout << "Verificando o no: " << no_atual->valor << "\n";
+            impressao_em_ordem_recursivo(no_atual->esquerda);
+            cout << "Impressao em ordem: " << no_atual->valor << "\n";
+            impressao_em_ordem_recursivo(no_atual->direita);
+        }
+    }
+
+    void impressao_pre_ordem_recursivo(no_arvore* no_atual) {
+        if (no_atual != NULL) {
+            cout << "Verificando o no: " << no_atual->valor << "\n";
+            cout << "Impressao pre ordem: " << no_atual->valor << "\n";
+            impressao_pre_ordem_recursivo(no_atual->esquerda);
+            impressao_pre_ordem_recursivo(no_atual->direita);
+        }
+    }
+
+    void impressao_pos_ordem_recursivo(no_arvore* no_atual) {
+        if (no_atual != NULL) {
+            impressao_pos_ordem_recursivo(no_atual->esquerda);
+            impressao_pos_ordem_recursivo(no_atual->direita);
+            cout << "Impressao pos ordem: " << no_atual->valor << "\n";
+        }
     }
 
 public:
@@ -137,20 +208,22 @@ public:
         raiz = remover_recursivo(raiz, valor_remover);
     }
     
-    bool esta_vazia() const {
+    bool esta_vazia() {
         return esta_vazia_recursivo(raiz);
     }
 
-    // Imprime a árvore binária dentro de uma caixa centralizada 
-    void imprimir_arvore_binaria() const {
+    // Imprime a árvore binária dentro de uma caixa centralizada
+    void imprimir_arvore_binaria() {
         if (esta_vazia()) {
             cout << "\n--------------------------------------\n";
             cout <<   "|    Arvore binaria esta vazia...    |\n";
             cout <<   "--------------------------------------\n\n";
             return;
         }
-        
-        int altura = altura_recursiva(raiz);
+
+        cout << "\n";
+
+        int altura = altura_recursivo(raiz);
         if (altura == 0) return;
 
         // Calcula espaçamento vertical (linhas de intervalo) e posições de cada nível
@@ -172,61 +245,49 @@ public:
         // Inicializa espaço vazio para montagem do diagrama
         vector<string> malha(linhas + 1, string(colunas, ' '));
 
-        // Função recursiva que posiciona cada nó e desenha conexões pai-filho
-        function<void(no_arvore*, int, int, int)> disposicao =
-            [&](no_arvore* no, int profundidade, int limite_esq, int limite_dir) {
-                if (!no) return; // Se o nó é nulo, não faz nada
-
-                int pos_x = (limite_esq + limite_dir) / 2; // Centro horizontal do nó entre os limites esquerdo e direito
-                int pos_y = linha[profundidade]; // Linha vertical definida para este nível de profundidade
-                string valor_str = to_string(no->valor); // Converte valor do nó em string e centraliza sobre pos_x
-                int inicio = pos_x - valor_str.size() / 2;
-
-                for (int i = 0; i < (int)valor_str.size(); ++i)
-                    malha[pos_y][inicio + i] = valor_str[i];
-
-                // Ligações para filhos à esquerda
-                if (no->esquerda && profundidade < altura - 1) {
-                    int limite_esq_novo = limite_esq;
-                    int limite_dir_novo = pos_x - 1;
-                    int pos_x_filho = (limite_esq_novo + limite_dir_novo) / 2;
-                    int espacamento_vertical = espacamentos[profundidade];
-
-                    // Desenha linha diagonal até o nó filho, seguindo a razão entre delta X e delta Y
-                    for (int passo = 1; passo <= espacamento_vertical; ++passo) {
-                        int pos_x_inter = pos_x - (pos_x - pos_x_filho) * passo / espacamento_vertical;
-                        malha[pos_y + passo][pos_x_inter] = '/';
-                    }
-
-                    disposicao(no->esquerda, profundidade + 1, limite_esq_novo, limite_dir_novo); // Recursa para desenhar subárvore esquerda
-                }
-
-                // Ligações para filhos à direita
-                if (no->direita && profundidade < altura - 1) {
-                    int limite_esq_novo = pos_x + 1;
-                    int limite_dir_novo = limite_dir;
-                    int pos_x_filho = (limite_esq_novo + limite_dir_novo) / 2;
-                    int espacamento_vertical = espacamentos[profundidade];
-
-                    for (int passo = 1; passo <= espacamento_vertical; ++passo) {
-                        int pos_x_inter = pos_x + (pos_x_filho - pos_x) * passo / espacamento_vertical;
-                        malha[pos_y + passo][pos_x_inter] = '\\';
-                    }
-
-                    disposicao(no->direita, profundidade + 1, limite_esq_novo, limite_dir_novo);
-                }
-            };
-        disposicao(raiz, 0, 0, colunas - 1); // Inicia disposição a partir da raiz, cobrindo toda a largura disponível
+        disposicao_recursivo(raiz, malha, linha, 0, altura, 0, colunas - 1, espacamentos); // Inicia disposição a partir da raiz, cobrindo toda a largura disponível
         string borda(colunas + 2, '-'); // Desenha as bordas superior e inferior da caixa
         cout << borda << "\n";
         for (auto& linha_str : malha)
             cout << "|" << linha_str << "|\n";
-        cout << borda << "\n";
+        cout << borda << "\n\n";
     }
     
     void limpar_arvore_binaria() {
         destruir_recursivo(raiz);
         raiz = NULL;
+    }
+
+    string balancear_arvore_binaria() {
+        if (esta_vazia()) {
+            return "A arvore binaria esta vazia. Nao ha nada para balancear.\n\n";
+        }
+        vector<int> valores;
+        coletar_valores_em_ordem_recursivo(raiz, valores);
+        limpar_arvore_binaria();
+        criar_balanceada_recursivo(valores);
+        return "A arvore binaria foi balanceada com sucesso.\n\n";
+    }
+
+    void impressao_em_ordem() {
+        impressao_em_ordem_recursivo(raiz);
+        cout << "\nImpressao em ordem concluida. Pressione Enter para continuar...\n";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpa o buffer de entrada
+        cin.get(); // Espera o Enter
+    }
+
+    void impressao_pre_ordem() {
+        impressao_pre_ordem_recursivo(raiz);
+        cout << "\nImpressao pre ordem concluida. Pressione Enter para continuar...\n";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpa o buffer de entrada
+        cin.get(); // Espera o Enter
+    }
+
+    void impressao_pos_ordem() {
+        impressao_pos_ordem_recursivo(raiz);
+        cout << "\nImpressao pos ordem concluida. Pressione Enter para continuar...\n";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpa o buffer de entrada
+        cin.get(); // Espera o Enter
     }
 };
 
@@ -298,9 +359,13 @@ int main() {
         cout << "---------------- MENU ----------------\n";
         cout << "|   1. Inserir elemento              |\n";
         cout << "|   2. Remover elemento              |\n";
-        cout << "|   3. Limpar arvore completa        |\n";
-        cout << "|   4. Executar testes automaticos   |\n";
-        cout << "|   5. Sair                          |\n";
+        cout << "|   3. Limpar arvore binaria         |\n";
+        cout << "|   4. Balancear arvore binaria      |\n";
+        cout << "|   5. Impressao em ordem            |\n";
+        cout << "|   6. Impressao pre ordem           |\n";
+        cout << "|   7. Impressao pos ordem           |\n";
+        cout << "|   8. Executar testes automaticos   |\n";
+        cout << "|   9. Sair                          |\n";
         cout << "--------------------------------------\n";
 
         ab.imprimir_arvore_binaria();
@@ -358,10 +423,37 @@ int main() {
             }
             case 3: {
                 ab.limpar_arvore_binaria();
-                mensagem_feedback = "Arvore limpa com sucesso.\n\n";
+                mensagem_feedback = "Arvore binaria limpa com sucesso.\n\n";
                 break;
             }
             case 4: {
+                limpar_tela();
+                mensagem_feedback = ab.balancear_arvore_binaria();
+                break;
+            }
+            case 5: {
+                limpar_tela();
+                cout << "5. Impressao em ordem\n\n";
+                ab.imprimir_arvore_binaria();
+                ab.impressao_em_ordem();
+                mensagem_feedback = "Impressao em ordem concluida!\n\n";
+                break;
+            }
+            case 6: {
+                limpar_tela();
+                cout << "6. Impressao pre ordem\n\n";
+                ab.impressao_pre_ordem();
+                mensagem_feedback = "Impressao pre ordem concluida!\n\n";
+                break;
+            }
+            case 7: {
+                limpar_tela();
+                cout << "7. Impressao pos ordem\n\n";
+                ab.impressao_pos_ordem();
+                mensagem_feedback = "Impressao pos ordem concluida!\n\n";
+                break;
+            }
+            case 8: {
                 limpar_tela();
                 cout << "--- Iniciando testes automaticos da Arvore Binaria ---\n\n";
                 executar_testes_automaticos_arvore();
@@ -372,7 +464,7 @@ int main() {
                 mensagem_feedback = ""; // Limpa qualquer feedback anterior
                 break;
             }
-            case 5:
+            case 9:
                 break; // Sai do loop
             default:
                 if (opcao != 0) { // Não mostra mensagem de erro se foi erro de cin.fail() já tratado
@@ -381,7 +473,7 @@ int main() {
                 break;
             }
         }
-    } while (opcao != 5);
+    } while (opcao != 9);
 
     limpar_tela();
     cout << "Programa encerrado.\n";
