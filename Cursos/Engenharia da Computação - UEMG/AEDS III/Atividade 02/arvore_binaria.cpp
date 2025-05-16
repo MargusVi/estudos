@@ -361,11 +361,10 @@ int main() {
         cout << "|   2. Remover elemento              |\n";
         cout << "|   3. Limpar arvore binaria         |\n";
         cout << "|   4. Balancear arvore binaria      |\n";
-        cout << "|   5. Impressao em ordem            |\n";
-        cout << "|   6. Impressao pre ordem           |\n";
-        cout << "|   7. Impressao pos ordem           |\n";
-        cout << "|   8. Executar testes automaticos   |\n";
-        cout << "|   9. Sair                          |\n";
+        cout << "|   5. Impressao in-ordem            |\n";
+        cout << "|   6. Impressao pre-ordem           |\n";
+        cout << "|   7. Impressao pos-ordem           |\n";
+        cout << "|   8. Sair                          |\n";
         cout << "--------------------------------------\n";
 
         ab.imprimir_arvore_binaria();
@@ -442,6 +441,7 @@ int main() {
             case 6: {
                 limpar_tela();
                 cout << "6. Impressao pre ordem\n\n";
+                ab.imprimir_arvore_binaria();
                 ab.impressao_pre_ordem();
                 mensagem_feedback = "Impressao pre ordem concluida!\n\n";
                 break;
@@ -449,22 +449,12 @@ int main() {
             case 7: {
                 limpar_tela();
                 cout << "7. Impressao pos ordem\n\n";
+                ab.imprimir_arvore_binaria();
                 ab.impressao_pos_ordem();
                 mensagem_feedback = "Impressao pos ordem concluida!\n\n";
                 break;
             }
-            case 8: {
-                limpar_tela();
-                cout << "--- Iniciando testes automaticos da Arvore Binaria ---\n\n";
-                executar_testes_automaticos_arvore();
-                cout << "--- Testes automaticos finalizados ---\n";
-                cout << "Pressione Enter para retornar ao menu...";
-                cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpa o buffer de entrada
-                cin.get(); // Espera o Enter
-                mensagem_feedback = ""; // Limpa qualquer feedback anterior
-                break;
-            }
-            case 9:
+            case 8:
                 break; // Sai do loop
             default:
                 if (opcao != 0) { // Não mostra mensagem de erro se foi erro de cin.fail() já tratado
@@ -473,7 +463,7 @@ int main() {
                 break;
             }
         }
-    } while (opcao != 9);
+    } while (opcao != 8);
 
     limpar_tela();
     cout << "Programa encerrado.\n";
