@@ -14,7 +14,7 @@ N_SINAIS_PARA_PLOTAR = 3    # Número de sinais de cada classe para plotar
 
 # --- 1. Organização dos Dados ---
 def carregar_e_organizar_dados(arquivo_normal, arquivo_anormal):
-    # Organização dos sinais em matrizes ou dataframes de modo que as N primeiras colunas/posições sejam ocupadas pela classe "Anormal" e as N seguintes pela classe "Normal"
+    # Organização dos sinais em dataframes de modo que as N primeiras colunas/posições sejam ocupadas pela classe "Anormal" e as N seguintes pela classe "Normal"
     # Carrega os dados dos arquivos CSV, transpõe e concatena os dataframes
     try:
         # Carregar dados da classe anormal (Harmonics)
@@ -84,7 +84,7 @@ def visualizar_sinais_tempo(df, num_sinais_anormais, num_sinais_normais, n_plot=
         return sinais_anormais_plot, sinais_normais_plot
 
     plt.figure(figsize=(4 * num_cols_subplot, 8)) # Ajustar tamanho da figura
-    plt.suptitle('Sinais Selecionados no domínio do tempo', fontsize=16)
+    plt.suptitle('Sinais selecionados no domínio do tempo', fontsize=16)
 
     for i in range(n_plot_anormais):
         # Plotar sinais anormais
@@ -162,9 +162,7 @@ def analisar_sinais_frequencia(sinais_anormais, sinais_normais, fs, n_samples, n
 
 # --- 4. Filtragem digital (filtro IIR Butterworth Passa-Baixas) ---
 def aplicar_e_visualizar_filtro(nome_sinal, sinais_originais, freq, n_amostras):
-    """
-    Aplica um filtro IIR (Butterworth passa-baixas) a um sinal e visualiza os resultados.
-    """
+    # Realização da filtragem digital dos sinais e visualização das respostas em frequência dos mesmos
     sinal_original = sinais_originais.values
 
     # Parâmetros do filtro
@@ -184,7 +182,7 @@ def aplicar_e_visualizar_filtro(nome_sinal, sinais_originais, freq, n_amostras):
     plt.figure(figsize=(9.6, 8)) # Ajustar tamanho da figura
     plt.subplot(3, 1, 1)
     plt.plot(w, np.abs(h))
-    plt.title(f'Resposta em Frequência do filtro Butterworth (Corte: {freq_corte} Hz)')
+    plt.title(f'Resposta em frequência do filtro Butterworth (Corte: {freq_corte} Hz)')
     plt.xlabel('Frequência (Hz)')
     plt.ylabel('Ganho')
     plt.grid(True)
@@ -194,9 +192,9 @@ def aplicar_e_visualizar_filtro(nome_sinal, sinais_originais, freq, n_amostras):
     # Visualizar sinal original vs. filtrado no domínio do tempo
     tempo = np.arange(n_amostras)
     plt.subplot(3, 1, 2)
-    plt.plot(tempo, sinal_original, label='Sinal Original')
-    plt.plot(tempo, sinal_filtrado, label='Sinal Filtrado', linestyle='--')
-    plt.title(f'Sinal "{nome_sinal}" Original vs. Filtrado (Tempo)')
+    plt.plot(tempo, sinal_original, label='Sinal original')
+    plt.plot(tempo, sinal_filtrado, label='Sinal filtrado', linestyle='--')
+    plt.title(f'Sinal "{nome_sinal}" original vs. filtrado (Tempo)')
     plt.xlabel('Número da Amostra')
     plt.ylabel('Amplitude')
     plt.legend()
@@ -212,9 +210,9 @@ def aplicar_e_visualizar_filtro(nome_sinal, sinais_originais, freq, n_amostras):
     magnitude_filtrado = np.abs(fft_filtrado)[:n_amostras//2]
 
     plt.subplot(3, 1, 3)
-    plt.plot(freq_axis, magnitude_original, label='FFT Original')
-    plt.plot(freq_axis, magnitude_filtrado, label='FFT Filtrado', linestyle='--')
-    plt.title(f'FFT Sinal "{nome_sinal}" Original vs. Filtrado')
+    plt.plot(freq_axis, magnitude_original, label='FFT original')
+    plt.plot(freq_axis, magnitude_filtrado, label='FFT filtrado', linestyle='--')
+    plt.title(f'FFT Sinal "{nome_sinal}" original vs. filtrado')
     plt.xlabel('Frequência (Hz)')
     plt.ylabel('Magnitude')
     plt.legend()
