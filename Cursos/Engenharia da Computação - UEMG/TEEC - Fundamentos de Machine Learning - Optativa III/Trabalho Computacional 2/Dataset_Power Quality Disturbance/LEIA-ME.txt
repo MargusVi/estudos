@@ -1,0 +1,52 @@
+ =============== Dataset - Power Quality Disturbance =================
+
+Dataset Details:
+	Fundamental Frequency: 50 Hz
+	Sampling Rate: 5 kHz
+	Number of Classes: 17
+	Signals per Class: 1000
+	Length of Each Signal (samples): 100
+	Length of Each Signal (time): 20 ms
+	Amplitude of Each Signal: Scaled between -1 to 1
+
+Data Format:
+	The dataset is available in two formats: MATLAB and CSV.
+
+MATLAB File:
+	Filename: 5Kfs_1Cycle_50f_1000Sam_1A.mat
+	Structure: A matrix of dimensions (1000 x 100 x 17), where:
+	1000 = Signals per class
+	100 = Samples per signal
+	17 = Number of classes
+	Class Order:
+		Pure_Sinusoidal
+		Sag
+		Swell
+		Interruption
+		Transient
+		Oscillatory_Transient
+		Harmonics
+		Harmonics_with_Sag
+		Harmonics_with_Swell
+		Flicker
+		Flicker_with_Sag
+		Flicker_with_Swell
+		Sag_with_Oscillatory_Transient
+		Swell_with_Oscillatory_Transient
+		Sag_with_Harmonics
+		Swell_with_Harmonics
+		Notch
+
+CSV Files:
+	Files: 17 CSV files, one for each class.
+	Structure: Each CSV file has dimensions (1000 x 100), where:
+		1000 = Signals per class
+		100 = Samples per signal
+
+Usage:
+This dataset is designed to support the development and testing of power quality recognition systems. The 17 classes cover a broad range of power quality disturbances, providing a comprehensive resource for training machine learning models and validating their performance in recognizing various types of power quality issues.
+
+Acknowledgements:
+All users of the dataset are advised to cite the following article:
+
+Citation: Muhammad Umar Khan, Sumair Aziz, Adil Usman, XPQRS: Expert power quality recognition system for sensitive load applications, Measurement, Volume 216, 2023, 112889, ISSN 0263-2241,
