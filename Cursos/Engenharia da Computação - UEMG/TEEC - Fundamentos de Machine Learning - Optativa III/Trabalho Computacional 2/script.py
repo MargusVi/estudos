@@ -4,97 +4,81 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import skew, kurtosis
 
-# --- Configurações Globais ---
+# --- Parâmetros Globais ---
 # Define o tamanho padrão para as figuras geradas pelo Matplotlib
 plt.rcParams['figure.figsize'] = (15, 8)
 # Define o estilo dos gráficos do Seaborn
 sns.set_theme(style="whitegrid")
-
-# --- Nomes dos Arquivos ---
 ARQUIVO_NORMAL = 'Dataset_Power Quality Disturbance/Pure_Sinusoidal.csv'
 ARQUIVO_ANORMAL = 'Dataset_Power Quality Disturbance/Harmonics.csv'
 
-# --- Funções Auxiliares ---
-
-def carregar_dados(arquivo_normal, arquivo_anormal):
-    """
-    Carrega os dados dos arquivos CSV, atribui as classes e os combina em um único DataFrame.
-
-    Args:
-        arquivo_normal (str): Caminho para o arquivo CSV com os dados da classe 'Normal'.
-        arquivo_anormal (str): Caminho para o arquivo CSV com os dados da classe 'Anormal'.
-
-    Returns:
-        pandas.DataFrame: DataFrame contendo todos os sinais com uma coluna 'Classe'.
-    """
+# --- 1. Organização dos Dados ---
+def carregar_e_organizar_dados(arquivo_normal, arquivo_anormal):
+    # Organização dos sinais em dataframes de modo que as N primeiras colunas/posições sejam ocupadas pela classe "Anormal" e as N seguintes pela classe "Normal"
+    # Carrega os dados dos arquivos CSV, transpõe e concatena os dataframes
     try:
-        df_normal = pd.read_csv(arquivo_normal, header=None)
+        # Carregar dados da classe anormal (Harmonics)
         df_anormal = pd.read_csv(arquivo_anormal, header=None)
-
-        # Adiciona a coluna 'Classe' para identificar a origem dos dados
-        df_normal['Classe'] = 'Normal'
-        df_anormal['Classe'] = 'Anormal'
-
-        # Combina os dois DataFrames em um só
-        df_combinado = pd.concat([df_anormal, df_normal], ignore_index=True)
-        print("Dados carregados e organizados com sucesso.")
-        print(f"Total de sinais da classe 'Anormal': {len(df_anormal)}")
-        print(f"Total de sinais da classe 'Normal': {len(df_normal)}")
-        return df_combinado
+        # Carregar dados da classe normal (Pure_Sinusoidal)
+        df_normal = pd.read_csv(arquivo_normal, header=None)
     except FileNotFoundError as e:
-        print(f"Erro: Arquivo não encontrado - {e}. Verifique os caminhos dos arquivos.")
-        return None
+        print(f"Erro: arquivo não encontrado: {e}")
+        return None, 0, 0
 
+    # Transpor os dataframes (sinais como colunas, amostras como linhas)
+    df_anormal_T = df_anormal.T
+    df_normal_T = df_normal.T
+
+    num_sinais_anormais = df_anormal_T.shape[1]
+    num_sinais_normais = df_normal_T.shape[1]
+
+    print(f"Número de sinais 'anormais' ({arquivo_anormal}): {num_sinais_anormais}")
+    print(f"Número de sinais 'normais' ({arquivo_normal}): {num_sinais_normais}")
+    print(f"Número de amostras por sinal: {df_anormal_T.shape}")
+
+    # Renomear colunas para facilitar identificação
+    df_anormal_T.columns = [f'Anormal_{i+1}' for i in range(num_sinais_anormais)]
+    df_normal_T.columns = [f'Normal_{i+1}' for i in range(num_sinais_normais)]
+
+    # Concatenar: anormais primeiro, depois normais
+    df_combinado = pd.concat([df_anormal_T, df_normal_T], axis=1)
+
+    print(f"\nDimensões do dataframe anormal transposto: {df_anormal_T.shape}")
+    print(f"Dimensões do dataframe normal transposto: {df_normal_T.shape}")
+    print(f"Dimensões do dataframe combinado: {df_combinado.shape}")
+
+    return df_combinado
+
+# --- 2. Extração dos atributos ---
 def extrair_atributos(sinais_df):
-    """
-    Extrai um conjunto de atributos estatísticos de cada sinal (linha) no DataFrame.
-
-    Args:
-        sinais_df (pandas.DataFrame): DataFrame onde cada linha é um sinal.
-
-    Returns:
-        pandas.DataFrame: DataFrame com os atributos extraídos para cada sinal.
-    """
-    # Isola apenas os dados do sinal, excluindo a coluna 'Classe'
-    dados_sinais = sinais_df.drop('Classe', axis=1)
+    # a). Calcular os atributos para cada coluna (sinal) usando axis=0.
+    atributos_dict = {
+        'Max': sinais_df.max(axis=0),
+        'Min': sinais_df.min(axis=0),
+        'RMS': np.sqrt(np.mean(np.square(sinais_df), axis=0)),
+        'Energia': np.sum(np.square(sinais_df), axis=0),
+        'Media': sinais_df.mean(axis=0),
+        'Desvio_Padrao': sinais_df.std(axis=0),
+        'Skewness': skew(sinais_df, axis=0), 
+        'Kurtosis': kurtosis(sinais_df, axis=0)
+    }
     
-    atributos = pd.DataFrame(index=sinais_df.index)
+    # b). Criar o DataFrame de atributos a partir do dicionário.
+    atributos_df = pd.DataFrame(atributos_dict)
     
-    # 1. Valor Máximo
-    atributos['Max'] = dados_sinais.max(axis=1)
-    # 2. Valor Mínimo
-    atributos['Min'] = dados_sinais.min(axis=1)
-    # 3. Valor Eficaz (RMS)
-    atributos['RMS'] = np.sqrt(np.mean(np.square(dados_sinais), axis=1))
-    # 4. Energia
-    atributos['Energia'] = np.sum(np.square(dados_sinais), axis=1)
-    # 5. Média
-    atributos['Media'] = dados_sinais.mean(axis=1)
-    # 6. Desvio Padrão
-    atributos['Desvio_Padrao'] = dados_sinais.std(axis=1)
-    # 7. Skewness (Assimetria)
-    atributos['Skewness'] = dados_sinais.apply(skew, axis=1)
-    # 8. Kurtosis (Curtose)
-    atributos['Kurtosis'] = dados_sinais.apply(kurtosis, axis=1)
-    
-    # Adiciona a coluna 'Classe' de volta para análises futuras
-    atributos['Classe'] = sinais_df['Classe']
+    # c). Adicionar a coluna 'Classe' com base no nome do sinal (que está no índice).
+    atributos_df['Classe'] = np.where(atributos_df.index.str.contains('Anormal'), 'Anormal', 'Normal')
     
     print("\nAtributos extraídos com sucesso.")
-    return atributos
+    return atributos_df
 
+# --- 3. Plotagem dos atributos ---
 def plotar_atributos(atributos_df):
-    """
-    Plota boxplots para cada atributo para visualizar a separação entre as classes.
-
-    Args:
-        atributos_df (pandas.DataFrame): DataFrame contendo os atributos e a coluna 'Classe'.
-    """
     # Nomes dos atributos a serem plotados
     nomes_atributos = atributos_df.columns.drop('Classe')
     num_atributos = len(nomes_atributos)
 
-    print("\n--- 1. Análise Visual dos Atributos ---")
+    print("\n--- 3. Análise Visual dos Atributos ---")
     print("Gerando gráficos para visualizar a separação das classes por atributo...")
 
     # Cria uma figura com subplots para cada atributo
@@ -102,7 +86,7 @@ def plotar_atributos(atributos_df):
     axes = axes.flatten() # Transforma a matriz de eixos em um vetor para facilitar a iteração
 
     for i, nome_attr in enumerate(nomes_atributos):
-        sns.boxplot(x='Classe', y=nome_attr, data=atributos_df, ax=axes[i], palette=['#ff6347', '#4682b4'])
+        sns.boxplot(x='Classe', y=nome_attr, data=atributos_df, ax=axes[i], hue='Classe', palette=['#ff6347', '#4682b4'], legend=False)
         axes[i].set_title(f'Distribuição de: {nome_attr}', fontsize=12)
         axes[i].set_xlabel('Classe', fontsize=10)
         axes[i].set_ylabel('Valor', fontsize=10)
@@ -115,17 +99,9 @@ def plotar_atributos(atributos_df):
     plt.suptitle("Distribuição dos Atributos por Classe", fontsize=16, y=1.02)
     plt.show()
 
+# --- 4. Ranqueamento com Fisher ---
 def calcular_fisher_discriminant_ratio(atributos_df):
-    """
-    Calcula e ranqueia os atributos com base na Razão Discriminante de Fisher.
-
-    Args:
-        atributos_df (pandas.DataFrame): DataFrame com os atributos e a coluna 'Classe'.
-
-    Returns:
-        pandas.Series: Série com os atributos ranqueados pelo score de Fisher.
-    """
-    print("\n--- 2. Ranqueamento de Atributos com a Razão Discriminante de Fisher ---")
+    print("\n--- 4. Ranqueamento de Atributos com a Razão Discriminante de Fisher ---")
     
     scores_fisher = {}
     classes = atributos_df['Classe'].unique()
@@ -156,14 +132,9 @@ def calcular_fisher_discriminant_ratio(atributos_df):
     print(ranking_fisher)
     return ranking_fisher
 
+#  --- 5. Análise de Correlação ---
 def analisar_correlacao(atributos_df):
-    """
-    Realiza a análise de correlação entre os atributos e com a saída.
-
-    Args:
-        atributos_df (pandas.DataFrame): DataFrame com os atributos e a coluna 'Classe'.
-    """
-    print("\n--- 3. Seleção de Atributos por Correlação ---")
+    print("\n--- 5. Seleção de Atributos por Correlação ---")
 
     # a) Correlação entre os próprios atributos para eliminar redundância
     print("\na) Análise de correlação entre atributos:")
@@ -191,40 +162,35 @@ def analisar_correlacao(atributos_df):
     print(corr_com_saida)
 
     plt.figure(figsize=(10, 6))
-    sns.barplot(x=corr_com_saida.index, y=corr_com_saida.values, palette='viridis')
+    sns.barplot(x=corr_com_saida.index, y=corr_com_saida.values, hue=corr_com_saida.index, palette='viridis', legend=False)
     plt.title('Correlação dos Atributos com a Classe de Saída')
     plt.xlabel('Atributos')
     plt.ylabel('Correlação Absoluta')
     plt.xticks(rotation=45)
     plt.show()
 
-# --- Função Principal de Execução ---
 def main():
-    """
-    Função principal que orquestra a execução do script.
-    """
-    # Carrega os dados dos arquivos
-    df_sinais = carregar_dados(ARQUIVO_NORMAL, ARQUIVO_ANORMAL)
+    # 1. Carrega os dados dos arquivos
+    df_sinais = carregar_e_organizar_dados(ARQUIVO_NORMAL, ARQUIVO_ANORMAL)
 
     if df_sinais is not None:
-        # 1. Extração dos atributos
+        # 2. Extração dos atributos
         df_atributos = extrair_atributos(df_sinais)
         print("\nAmostra da tabela de atributos:")
         print(df_atributos.head())
 
-        # 2. Plotagem dos atributos para análise visual
+        # 3. Plotagem dos atributos para análise visual
         plotar_atributos(df_atributos)
         
-        # 3. Ranqueamento com Fisher
+        # 4. Ranqueamento com Fisher
         ranking = calcular_fisher_discriminant_ratio(df_atributos)
         
         # Compara o ranking de Fisher com a análise visual
         print("\nVerificação da análise visual com o ranking de Fisher:")
         print(f"Os 3 melhores atributos segundo Fisher: {list(ranking.index[:3])}")
         print(f"Os 3 piores atributos segundo Fisher: {list(ranking.index[-3:])}")
-        print("Compare este resultado com os gráficos gerados para verificar se a separação visual corresponde ao ranking numérico.")
-
-        # 4. Análise de Correlação
+        
+        # 5. Análise de Correlação
         analisar_correlacao(df_atributos)
 
 if __name__ == '__main__':
